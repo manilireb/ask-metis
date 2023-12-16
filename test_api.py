@@ -7,6 +7,7 @@ headers = {"Content-type": "application/json"}
 
 
 def chat(data):
+    print("[Mr. Grey]: ", end=" ")
     with requests.get(url, json=data, headers=headers, stream=True) as rari:
         for chunk in rari.iter_content(1024):
             print(chunk.decode("utf-8"), end="", flush=True)

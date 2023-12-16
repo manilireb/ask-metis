@@ -1,15 +1,11 @@
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
 
-from model import ChatModel
+from chatmodels import ChatModel
+from dataformats import StreamChatMessage
 
 app = FastAPI()
 chat_model = ChatModel(streaming=True)
-
-
-class Message(BaseModel):
-    content: str
 
 
 @app.get("/")
@@ -24,7 +20,7 @@ def chat(question: str):
 
 
 @app.get("/stream_chat/")
-async def stream_chat(message: Message):
+async def stream_chat(message: StreamChatMessage):
     # session = SessionHandler.get_seesion(id)
     # generator = session.chat_model.get_generator(message.content)
     # return StreamingResponse(generator, media_type="text/event-stream")

@@ -1,4 +1,4 @@
-from model import ChatModel
+from chatmodels import ChatModel
 
 chat_model = ChatModel()
 query = input(
