@@ -1,13 +1,14 @@
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import Session
 
-from dataformats import SQLMessage
+from database import SQLMessage, create_db_and_tables, engine
+
+create_db_and_tables()
+
 
 message1 = SQLMessage(
-    session_id=777, session_idx=1, session_message="hi", message_type="Human"
+    session_id=7709, session_idx=2, session_message="hi", message_type="Human"
 )
 
-engine = create_engine("sqlite:///database.db")
-SQLModel.metadata.create_all(engine)
 
 with Session(engine) as session:
     session.add(message1)
