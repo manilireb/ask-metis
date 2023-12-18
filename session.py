@@ -20,8 +20,6 @@ class Session:
     def get_chat_model_generator(self, message: StreamChatMessage):
         generator = self._chatmodel.get_generator(message.content)
         self.insert_into_db(message_text=message.content, message_type="Human")
-        self._history.append((self._message_counter, message.content, "Human"))
-        self._message_counter = len(self._history)
         return generator
 
     def load_from_db(self):
@@ -33,6 +31,9 @@ class Session:
             for res in results:
                 self._history.append(
                     (res.session_idx, res.session_message, res.message_type)
+                )
+                self._chatmodel.insert_into_memory(
+                    message=res.session_message, message_type=res.message_type
                 )
             self._message_counter = len(self._history)
 
@@ -46,3 +47,15 @@ class Session:
         with DBSession(self._engine) as db_session:
             db_session.add(message)
             db_session.commit()
+
+        self._history.append((self._message_counter, message_text, message_type))
+        self._message_counter = len(self._history)
+
+
+if __name__ == "__main__":
+    from database import create_db_and_tables, engine
+
+    create_db_and_tables()
+    session = Session(id=15, engine=engine)
+    session.load_from_db()
+    print(session._history)

@@ -14,6 +14,7 @@ from langchain.prompts import (
     MessagesPlaceholder,
     SystemMessagePromptTemplate,
 )
+from langchain.schema import AIMessage, HumanMessage
 
 from callbackhandlers import TokenMetricsCallbackHandler
 from env import env
@@ -36,7 +37,7 @@ class ChatModel:
             openai_api_key=api_key,
             model_name=model_name,
             streaming=self._streaming,
-            temperature=0.3,
+            temperature=env.temperature,
             callbacks=[self._callback, self._tokencounter] if self._streaming else None,
         )
         self._memory = ConversationBufferMemory(
@@ -47,7 +48,7 @@ class ChatModel:
         prompt = ChatPromptTemplate(
             messages=[
                 SystemMessagePromptTemplate.from_template(
-                    "Your are a helpful assistant that chats with the user. Always respond concise and polite."
+                    "You are a helpful assistant that chats with the user. Always respond concise and polite."
                 ),
                 MessagesPlaceholder(variable_name="chat_history"),
                 HumanMessagePromptTemplate.from_template("{question}"),
@@ -66,6 +67,12 @@ class ChatModel:
             -self._chat_history_size :
         ]
         self._memory.chat_memory.messages = history
+
+    def insert_into_memory(self, message: str, message_type) -> None:
+        if message_type == "Human":
+            self._memory.chat_memory.messages.append(HumanMessage(content=message))
+        if message_type == "AI":
+            self._memory.chat_memory.messages.append(AIMessage(content=message))
 
     def chat(self, question: str) -> Tuple[str, float]:
         self._truncate_memory()
