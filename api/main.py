@@ -31,3 +31,8 @@ async def stream_chat(message: StreamChatMessage):
 @app.get("/total_cost")
 def get_request_cost():
     return {"cost": session._chatmodel.get_total_cost()}
+
+
+@app.post("/add_to_database")
+def insert_message(message: StreamChatMessage):
+    session.insert_into_db(message_text=message.content, message_type="AI")
