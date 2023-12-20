@@ -1,1 +1,1 @@
-from .stream_chat_message import StreamChatMessage  # noqa: F401
+from .chat_message import ChatMessage  # noqa: F401

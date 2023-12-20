@@ -6,7 +6,7 @@ from sqlmodel import select
 
 from chatmodels import ChatModel
 from database import SQLMessage
-from dataformats import StreamChatMessage
+from dataformats import ChatMessage
 
 
 class Session:
@@ -17,7 +17,7 @@ class Session:
         self._history: List[str] = []
         self._message_counter: int = 0
 
-    def get_chat_model_generator(self, message: StreamChatMessage):
+    def get_chat_model_generator(self, message: ChatMessage):
         generator = self._chatmodel.get_generator(message.content)
         self.insert_into_db(message_text=message.content, message_type="Human")
         return generator

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
 
 
-class StreamChatMessage(BaseModel):
+class ChatMessage(BaseModel):
     content: str

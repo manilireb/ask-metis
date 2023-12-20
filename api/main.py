@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 
 from database import create_db_and_tables, engine
-from dataformats import StreamChatMessage
+from dataformats import ChatMessage
 from session import Session
 
 app = FastAPI()
@@ -23,7 +23,7 @@ def chat(question: str):
 
 
 @app.get("/stream_chat/")
-async def stream_chat(message: StreamChatMessage):
+async def stream_chat(message: ChatMessage):
     generator = session.get_chat_model_generator(message=message)
     return StreamingResponse(generator, media_type="text/event-stream")
 
@@ -34,5 +34,5 @@ def get_request_cost():
 
 
 @app.post("/add_to_database")
-def insert_message(message: StreamChatMessage):
+def insert_message(message: ChatMessage):
     session.insert_into_db(message_text=message.content, message_type="AI")
