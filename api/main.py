@@ -30,5 +30,5 @@ def get_request_cost(id: int):
 
 @app.post("/add_to_database")
 def insert_message(message: ChatMessage):
-    session = session_handler.get_session(id)
+    session = session_handler.get_session(message.id)
     session.insert_into_db(message_text=message.content, message_type="AI")
