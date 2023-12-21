@@ -17,12 +17,12 @@ class SessionHandler:
         self._ids = self._load_ids()
         self._session_cache = dict()
 
-    def create_session(self) -> Session:
+    def create_session(self) -> int:
         id = self._get_random_id()
         session = Session(id=id, engine=self._engine)
         self._session_cache[id] = session
         self._ids.add(id)
-        return session
+        return id
 
     def get_session(self, id: int) -> Session:
         if id not in self._ids:

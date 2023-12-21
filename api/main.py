@@ -15,6 +15,12 @@ def sanity_check():
     return 200
 
 
+@app.get("/get_new_session")
+async def get_new_session():
+    id = session_handler.create_session()
+    return {"id": id}
+
+
 @app.get("/stream_chat/")
 async def stream_chat(message: ChatMessage):
     session = session_handler.get_session(message.id)
