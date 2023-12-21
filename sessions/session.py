@@ -53,12 +53,3 @@ class Session:
 
     def get_request_cost(self):
         return self._chatmodel.get_request_cost()
-
-
-if __name__ == "__main__":
-    from database import create_db_and_tables, engine
-
-    create_db_and_tables()
-    session = Session(id=15, engine=engine)
-    session.load_from_db()
-    print(session._history)

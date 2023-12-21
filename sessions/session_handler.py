@@ -47,13 +47,3 @@ class SessionHandler:
         while random_id in self._ids:
             random_id = random.randint(0, env.max_n_sessions)
         return random_id
-
-
-if __name__ == "__main__":
-    from database import create_db_and_tables, engine
-
-    create_db_and_tables()
-    session_handler = SessionHandler(engine)
-    session = session_handler.create_session()
-    session_handler.get_ids()
-    print(session_handler._ids)
