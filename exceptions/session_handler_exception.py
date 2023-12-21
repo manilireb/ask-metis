@@ -1,0 +1,2 @@
+class SessionHandlerException(Exception):
+    pass

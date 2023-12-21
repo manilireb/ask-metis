@@ -101,5 +101,5 @@ class ChatModel:
 
         await task
 
-    def get_total_cost(self):
+    def get_request_cost(self):
         return self._tokencounter.total_cost

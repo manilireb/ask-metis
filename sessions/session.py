@@ -51,6 +51,9 @@ class Session:
         self._history.append((self._message_counter, message_text, message_type))
         self._message_counter = len(self._history)
 
+    def get_request_cost(self):
+        return self._chatmodel.get_request_cost()
+
 
 if __name__ == "__main__":
     from database import create_db_and_tables, engine

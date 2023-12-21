@@ -14,33 +14,33 @@ def chat(data):
             print(chunk.decode("utf-8"), end="", flush=True)
             response += chunk.decode("utf-8")
     print()
-    cost = requests.get(url=url_cost).json()["cost"]
+    cost = requests.get(url=url_cost, params={"id": data["id"]}).json()["cost"]
     print(f"Cost for the request: {cost}$")
-    response_data = {"content": response}
+    response_data = {"content": response, "id": data["id"]}
     requests.post(url=url_insert_db, json=response_data)
 
 
 message = input("USER: ")
-data = {"content": message}
+data = {"content": message, "id": 15}
 chat(data)
 
 
 message = input("USER: ")
-data = {"content": message}
+data = {"content": message, "id": 15}
 chat(data)
 
 message = input("USER: ")
-data = {"content": message}
+data = {"content": message, "id": 15}
 chat(data)
 
 message = input("USER: ")
-data = {"content": message}
+data = {"content": message, "id": 15}
 chat(data)
 
 message = input("USER: ")
-data = {"content": message}
+data = {"content": message, "id": 15}
 chat(data)
 
 message = input("USER: ")
-data = {"content": message}
+data = {"content": message, "id": 15}
 chat(data)
