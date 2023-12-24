@@ -53,3 +53,6 @@ class Session:
 
     def get_request_cost(self):
         return self._chatmodel.get_request_cost()
+
+    def get_history(self):
+        return self._history

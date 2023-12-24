@@ -18,6 +18,10 @@ class SessionHandler:
         self._session_cache = dict()
 
     def create_session(self) -> int:
+        if len(self._ids) > env.max_n_sessions:
+            raise SessionHandlerException(
+                "No more available space for storing sessions."
+            )
         id = self._get_random_id()
         session = Session(id=id, engine=self._engine)
         self._session_cache[id] = session
@@ -36,6 +40,13 @@ class SessionHandler:
 
     def get_ids(self) -> Set[int]:
         return self._ids
+
+    def get_sesssion_thumbnails(self):
+        with DBSession(self._engine) as db_session:
+            statement = select(SQLMessage.session_message, SQLMessage.session_id).where(
+                SQLMessage.session_idx == 0
+            )
+            return db_session.exec(statement).all()
 
     def _load_ids(self) -> Set[int]:
         with DBSession(self._engine) as db_session:

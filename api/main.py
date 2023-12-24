@@ -21,6 +21,20 @@ async def get_new_session():
     return {"id": id}
 
 
+@app.get("/load_existing_session")
+async def load_exisiting_session(id: int):
+    session = session_handler.get_session(id)
+    return {"chat_history": session.get_history()}
+
+
+@app.get("/get_session_thumbnails")
+def get_session_thumbnails():
+    thumbnails = session_handler.get_sesssion_thumbnails()
+    ids = [thumbnail[1] for thumbnail in thumbnails]
+    texts = [thumbnail[0] for thumbnail in thumbnails]
+    return {"ids": ids, "texts": texts}
+
+
 @app.get("/stream_chat/")
 async def stream_chat(message: ChatMessage):
     session = session_handler.get_session(message.id)
