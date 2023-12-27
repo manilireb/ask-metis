@@ -1,4 +1,4 @@
-from typing import List
+from typing import AsyncIterable, List, Tuple
 
 from sqlalchemy.engine.base import Engine
 from sqlmodel import Session as DBSession
@@ -17,12 +17,12 @@ class Session:
         self._history: List[str] = []
         self._message_counter: int = 0
 
-    def get_chat_model_generator(self, message: ChatMessage):
+    def get_chat_model_generator(self, message: ChatMessage) -> AsyncIterable[str]:
         generator = self._chatmodel.get_generator(message.content)
         self.insert_into_db(message_text=message.content, message_type="Human")
         return generator
 
-    def load_from_db(self):
+    def load_from_db(self) -> None:
         with DBSession(self._engine) as db_session:
             statement = select(SQLMessage).where(SQLMessage.session_id == self._id)
             results = sorted(
@@ -37,7 +37,7 @@ class Session:
                 )
             self._message_counter = len(self._history)
 
-    def insert_into_db(self, message_text: str, message_type: str):
+    def insert_into_db(self, message_text: str, message_type: str) -> None:
         message = SQLMessage(
             session_id=self._id,
             session_idx=self._message_counter,
@@ -51,8 +51,8 @@ class Session:
         self._history.append((self._message_counter, message_text, message_type))
         self._message_counter = len(self._history)
 
-    def get_request_cost(self):
+    def get_request_cost(self) -> float:
         return self._chatmodel.get_request_cost()
 
-    def get_history(self):
+    def get_history(self) -> List[Tuple[str, str, str]]:
         return self._history

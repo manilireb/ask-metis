@@ -4,9 +4,10 @@ import streamlit as st
 chat_url = "http://localhost:8001/stream_chat"
 url_cost = "http://localhost:8001/total_cost"
 url_insert_db = "http://localhost:8001/add_to_database"
-url_create_new_session = "http://localhost:8001/get_new_session"
-url_load_sessions = "http://localhost:8001/get_session_thumbnails"
+url_create_new_session = "http://localhost:8001/create_new_session"
+url_get_session_thumbnails = "http://localhost:8001/get_session_thumbnails"
 url_load_existing_session = "http://localhost:8001/load_existing_session"
+url_add_thumbnail_to_cache = "http://localhost:8001/add_thumbnail_to_cache"
 
 headers = {"Content-type": "application/json"}
 
@@ -14,14 +15,10 @@ st.set_page_config(page_title="\U0001F916 On-Demand GPT")
 
 
 def load_sessions():
-    thumbnails = requests.get(url=url_load_sessions).json()
+    thumbnails = requests.get(url=url_get_session_thumbnails).json()
     st.session_state.session_thumbnails = set(
         zip(thumbnails["ids"], thumbnails["texts"])
     )
-
-
-if "session_thumbnails" not in st.session_state.keys():
-    load_sessions()
 
 
 if "id" not in st.session_state.keys():
@@ -36,7 +33,7 @@ with st.sidebar:
         st.session_state.messages = []
 
     for thumbnail in st.session_state.session_thumbnails:
-        thumbnail_text = thumbnail[1][:30]
+        thumbnail_text = thumbnail[1]
         if st.button(
             thumbnail_text,
             key=thumbnail[0],
@@ -90,3 +87,10 @@ if (
 
     message = {"role": "assistant", "content": response + cost_string}
     st.session_state.messages.append(message)
+
+    if len(st.session_state.messages) == 2:
+        thumbnail_data = {
+            "id": st.session_state.id,
+            "text": st.session_state.messages[0]["content"],
+        }
+        requests.post(url=url_add_thumbnail_to_cache, json=thumbnail_data)

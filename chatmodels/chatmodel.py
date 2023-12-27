@@ -55,7 +55,7 @@ class ChatModel:
 
         await task
 
-    def get_request_cost(self):
+    def get_request_cost(self) -> float:
         return self._tokencounter.total_cost
 
     def _load_chat_model(self, api_key: str, model_name: str) -> None:
