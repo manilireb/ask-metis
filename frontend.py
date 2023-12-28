@@ -14,23 +14,26 @@ headers = {"Content-type": "application/json"}
 st.set_page_config(page_title="\U0001F916 On-Demand GPT")
 
 
-def load_sessions():
+def load_thumbnails():
     thumbnails = requests.get(url=url_get_session_thumbnails).json()
     st.session_state.session_thumbnails = set(
         zip(thumbnails["ids"], thumbnails["texts"])
     )
 
 
-if "id" not in st.session_state.keys():
+def get_new_session():
     id = requests.get(url=url_create_new_session).json()["id"]
     st.session_state.id = id
+    st.session_state.messages = []
+
+
+if "id" not in st.session_state.keys():
+    get_new_session()
 
 with st.sidebar:
-    load_sessions()
+    load_thumbnails()
     if st.button("New Chat", key="new_chat", use_container_width=True):
-        id = requests.get(url=url_create_new_session).json()["id"]
-        st.session_state.id = id
-        st.session_state.messages = []
+        get_new_session()
 
     for thumbnail in st.session_state.session_thumbnails:
         thumbnail_text = thumbnail[1]
@@ -52,9 +55,6 @@ with st.sidebar:
                 )
             st.session_state.id = thumbnail[0]
 
-
-if "messages" not in st.session_state.keys():
-    st.session_state.messages = []
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
