@@ -7,7 +7,6 @@ url_insert_db = "http://localhost:8001/add_to_database"
 url_create_new_session = "http://localhost:8001/create_new_session"
 url_get_session_thumbnails = "http://localhost:8001/get_session_thumbnails"
 url_load_existing_session = "http://localhost:8001/load_existing_session"
-url_add_thumbnail_to_cache = "http://localhost:8001/add_thumbnail_to_cache"
 
 headers = {"Content-type": "application/json"}
 
@@ -27,11 +26,12 @@ def get_new_session():
     st.session_state.messages = []
 
 
+# Initial load
 if "id" not in st.session_state.keys():
     get_new_session()
+    load_thumbnails()
 
 with st.sidebar:
-    load_thumbnails()
     if st.button("New Chat", key="new_chat", use_container_width=True):
         get_new_session()
 
@@ -42,20 +42,22 @@ with st.sidebar:
             key=thumbnail[0],
             use_container_width=True,
         ):
-            history = requests.get(
-                url=url_load_existing_session, params={"id": thumbnail[0]}
-            ).json()["chat_history"]
-            st.session_state.messages = []
-            for msg in history:
-                st.session_state.messages.append(
-                    {
-                        "role": "user" if msg[2] == "Human" else "assistant",
-                        "content": msg[1],
-                    }
-                )
-            st.session_state.id = thumbnail[0]
+            id = thumbnail[0]
+            if id != st.session_state.id:
+                history = requests.get(
+                    url=url_load_existing_session, params={"id": id}
+                ).json()["chat_history"]
+                st.session_state.messages = []
+                for msg in history:
+                    st.session_state.messages.append(
+                        {
+                            "role": "user" if msg[2] == "Human" else "assistant",
+                            "content": msg[1],
+                        }
+                    )
+                st.session_state.id = id
 
-
+# load messages
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.write(message["content"], unsafe_allow_html=True)
@@ -64,6 +66,10 @@ if prompt := st.chat_input(placeholder="Message ChatGPT..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.write(prompt)
+
+# Cache first message in thumbnails
+if len(st.session_state.messages) == 1:
+    st.session_state.session_thumbnails.add((st.session_state.id, prompt))
 
 if (
     len(st.session_state.messages) > 0
@@ -83,14 +89,9 @@ if (
         """
         placeholder.markdown(response + cost_string, unsafe_allow_html=True)
         response_data = {"content": response + cost_string, "id": data["id"]}
+        # write response back to data base
         requests.post(url=url_insert_db, json=response_data)
 
+    # add response message to session state
     message = {"role": "assistant", "content": response + cost_string}
     st.session_state.messages.append(message)
-
-    if len(st.session_state.messages) == 2:
-        thumbnail_data = {
-            "id": st.session_state.id,
-            "text": st.session_state.messages[0]["content"],
-        }
-        requests.post(url=url_add_thumbnail_to_cache, json=thumbnail_data)

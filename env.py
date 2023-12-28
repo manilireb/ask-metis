@@ -9,6 +9,8 @@ class Env(BaseModel):
     db_file: str = os.getenv("DB_FILE", "database.db")
     temperature: float = os.getenv("LLM_TEMPERATURE", 0.3)
     max_n_sessions: int = os.getenv("MAX_N_SESSIONS", 100)
+    cache_size: int = os.getenv("CACHE_SIZE", 100)
+    ttl: int = os.getenv("TTL", 600)
 
 
 env = Env()

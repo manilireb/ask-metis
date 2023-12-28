@@ -1,6 +1,7 @@
 import random
-from typing import Dict, Set
+from typing import List, Set
 
+from cachetools import TTLCache, cached
 from sqlalchemy.engine.base import Engine
 from sqlmodel import Session as DBSession
 from sqlmodel import select
@@ -11,12 +12,13 @@ from env import env
 from exceptions import SessionHandlerException
 from sessions import Session
 
+session_cache = TTLCache(maxsize=env.cache_size, ttl=env.ttl)
+
 
 class SessionHandler:
     def __init__(self, engine: Engine):
         self._engine = engine
-        self._init_from_db()
-        self._session_cache = dict()
+        self._ids = self._load_ids()
 
     def create_session(self) -> int:
         if len(self._ids) > env.max_n_sessions:
@@ -25,37 +27,30 @@ class SessionHandler:
             )
         id = self._get_random_id()
         session = Session(id=id, engine=self._engine)
-        self._session_cache[id] = session
+        session_cache[id] = session
         self._ids.add(id)
         return id
 
+    @cached(session_cache)
     def get_session(self, id: int) -> Session:
         if id not in self._ids:
             raise SessionHandlerException("Id does not exist")
-        if id not in self._session_cache.keys():
-            session = Session(id=id, engine=self._engine)
-            session.load_from_db()
-            self._session_cache[id] = session
-            return session
-        return self._session_cache[id]
+        session = Session(id=id, engine=self._engine)
+        session.load_from_db()
+        return session
 
-    def get_ids(self) -> Set[int]:
-        return self._ids
-
-    def get_session_thumbnails(self) -> Dict[int, str]:
-        return self._thumbnail_cache
-
-    def add_thumbnail_to_cache(self, thumbnail: Thumbnail) -> None:
-        self._thumbnail_cache[thumbnail.id] = thumbnail.text
-
-    def _init_from_db(self) -> None:
+    def load_thumbnails(self) -> List[Thumbnail]:
         with DBSession(self._engine) as db_session:
-            statement = select(SQLMessage.session_message, SQLMessage.session_id).where(
+            statement = select(SQLMessage.session_id, SQLMessage.session_message).where(
                 SQLMessage.session_idx == 0
             )
             response = db_session.exec(statement).all()
-        self._ids = set([item[1] for item in response])
-        self._thumbnail_cache = {item[1]: item[0] for item in response}
+            return [Thumbnail(id=x[0], text=x[1]) for x in response]
+
+    def _load_ids(self) -> Set[int]:
+        with DBSession(self._engine) as db_session:
+            statement = select(SQLMessage.session_id)
+            return set(db_session.exec(statement).all())
 
     def _get_random_id(self) -> int:
         random_id = random.randint(0, env.max_n_sessions)

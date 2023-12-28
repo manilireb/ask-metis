@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 
 from database import create_db_and_tables, engine
-from dataformats import ChatMessage, Thumbnail
+from dataformats import ChatMessage
 from sessions import SessionHandler
 
 app = FastAPI()
@@ -29,9 +29,9 @@ async def load_exisiting_session(id: int):
 
 @app.get("/get_session_thumbnails")
 def get_session_thumbnails():
-    thumbnails = session_handler.get_session_thumbnails()
-    ids = list(thumbnails.keys())
-    texts = list(thumbnails.values())
+    thumbnails = session_handler.load_thumbnails()
+    ids = [tn.id for tn in thumbnails]
+    texts = [tn.text for tn in thumbnails]
     return {"ids": ids, "texts": texts}
 
 
@@ -52,8 +52,3 @@ def get_request_cost(id: int):
 def insert_message(message: ChatMessage):
     session = session_handler.get_session(message.id)
     session.insert_into_db(message_text=message.content, message_type="AI")
-
-
-@app.post("/add_thumbnail_to_cache")
-def add_thumbnail_to_cache(thumbnail: Thumbnail):
-    session_handler.add_thumbnail_to_cache(thumbnail=thumbnail)
