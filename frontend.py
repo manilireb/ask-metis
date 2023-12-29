@@ -1,3 +1,5 @@
+from collections import deque
+
 import requests
 import streamlit as st
 
@@ -15,8 +17,8 @@ st.set_page_config(page_title="\U0001F916 On-Demand GPT")
 
 def load_thumbnails():
     thumbnails = requests.get(url=url_get_session_thumbnails).json()
-    st.session_state.session_thumbnails = set(
-        zip(thumbnails["ids"], thumbnails["texts"])
+    st.session_state.session_thumbnails = deque(
+        set(zip(thumbnails["ids"], thumbnails["texts"]))
     )
 
 
@@ -30,6 +32,14 @@ def get_new_session():
 if "id" not in st.session_state.keys():
     get_new_session()
     load_thumbnails()
+
+
+if prompt := st.chat_input(placeholder="Message ChatGPT..."):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+
+# Cache first message in thumbnails
+if len(st.session_state.messages) == 1:
+    st.session_state.session_thumbnails.appendleft((st.session_state.id, prompt))
 
 with st.sidebar:
     if st.button("New Chat", key="new_chat", use_container_width=True):
@@ -57,19 +67,11 @@ with st.sidebar:
                     )
                 st.session_state.id = id
 
-# load messages
+    # load messages
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.write(message["content"], unsafe_allow_html=True)
 
-if prompt := st.chat_input(placeholder="Message ChatGPT..."):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.write(prompt)
-
-# Cache first message in thumbnails
-if len(st.session_state.messages) == 1:
-    st.session_state.session_thumbnails.add((st.session_state.id, prompt))
 
 if (
     len(st.session_state.messages) > 0
