@@ -8,7 +8,7 @@ class Env(BaseModel):
     chat_history_size: int = os.getenv("CHAT_HISTORY_SIZE", 5)
     db_file: str = os.getenv("DB_FILE", "database.db")
     temperature: float = os.getenv("LLM_TEMPERATURE", 0.3)
-    max_n_sessions: int = os.getenv("MAX_N_SESSIONS", 100)
+    max_n_sessions: int = os.getenv("MAX_N_SESSIONS", 1000)
     cache_size: int = os.getenv("CACHE_SIZE", 100)
     ttl: int = os.getenv("TTL", 600)
 

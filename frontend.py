@@ -9,6 +9,7 @@ url_insert_db = "http://localhost:8001/add_to_database"
 url_create_new_session = "http://localhost:8001/create_new_session"
 url_get_session_thumbnails = "http://localhost:8001/get_session_thumbnails"
 url_load_existing_session = "http://localhost:8001/load_existing_session"
+url_delete_session = "http://localhost:8001/delete_session"
 
 headers = {"Content-type": "application/json"}
 
@@ -41,31 +42,44 @@ if prompt := st.chat_input(placeholder="Message ChatGPT..."):
 if len(st.session_state.messages) == 1:
     st.session_state.session_thumbnails.appendleft((st.session_state.id, prompt))
 
+deleted_session = None
+
 with st.sidebar:
     if st.button("New Chat", key="new_chat", use_container_width=True):
         get_new_session()
 
     for thumbnail in st.session_state.session_thumbnails:
         thumbnail_text = thumbnail[1]
-        if st.button(
-            thumbnail_text,
-            key=thumbnail[0],
-            use_container_width=True,
-        ):
-            id = thumbnail[0]
-            if id != st.session_state.id:
-                history = requests.get(
-                    url=url_load_existing_session, params={"id": id}
-                ).json()["chat_history"]
-                st.session_state.messages = []
-                for msg in history:
-                    st.session_state.messages.append(
-                        {
-                            "role": "user" if msg[2] == "Human" else "assistant",
-                            "content": msg[1],
-                        }
-                    )
-                st.session_state.id = id
+        col1, col2 = st.columns([0.9, 0.1])
+        with col1:
+            if st.button(
+                thumbnail_text,
+                key=thumbnail[0],
+                use_container_width=True,
+            ):
+                id = thumbnail[0]
+                if id != st.session_state.id:
+                    history = requests.get(
+                        url=url_load_existing_session, params={"id": id}
+                    ).json()["chat_history"]
+                    st.session_state.messages = []
+                    for msg in history:
+                        st.session_state.messages.append(
+                            {
+                                "role": "user" if msg[2] == "Human" else "assistant",
+                                "content": msg[1],
+                            }
+                        )
+                    st.session_state.id = id
+            with col2:
+                if st.button("X", key=-thumbnail[0]):
+                    requests.post(url=url_delete_session, params={"id": thumbnail[0]})
+                    deleted_session = (thumbnail[0], thumbnail[1])
+
+if deleted_session:
+    st.session_state.session_thumbnails.remove(deleted_session)
+    get_new_session()
+    st.rerun()
 
     # load messages
 for message in st.session_state.messages:

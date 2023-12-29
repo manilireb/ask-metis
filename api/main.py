@@ -52,3 +52,8 @@ def get_request_cost(id: int):
 def insert_message(message: ChatMessage):
     session = session_handler.get_session(message.id)
     session.insert_into_db(message_text=message.content, message_type="AI")
+
+
+@app.post("/delete_session")
+def delete_session(id: int):
+    session_handler.delete_session(id=id)

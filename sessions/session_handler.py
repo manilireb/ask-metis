@@ -4,7 +4,7 @@ from typing import List, Set
 from cachetools import TTLCache, cached
 from sqlalchemy.engine.base import Engine
 from sqlmodel import Session as DBSession
-from sqlmodel import select
+from sqlmodel import delete, select
 
 from database import SQLMessage
 from dataformats import Thumbnail
@@ -47,13 +47,19 @@ class SessionHandler:
             response = db_session.exec(statement).all()
             return [Thumbnail(id=x[0], text=x[1]) for x in response]
 
+    def delete_session(self, id: int) -> None:
+        with DBSession(self._engine) as db_session:
+            statement = delete(SQLMessage).where(SQLMessage.session_id == id)
+            db_session.exec(statement)
+            db_session.commit()
+
     def _load_ids(self) -> Set[int]:
         with DBSession(self._engine) as db_session:
             statement = select(SQLMessage.session_id)
             return set(db_session.exec(statement).all())
 
     def _get_random_id(self) -> int:
-        random_id = random.randint(0, env.max_n_sessions)
+        random_id = random.randint(1, env.max_n_sessions)
         while random_id in self._ids:
             random_id = random.randint(0, env.max_n_sessions)
         return random_id
