@@ -13,7 +13,7 @@ class Session:
     def __init__(self, id: int, engine: Engine):
         self._id: int = id
         self._engine: Engine = engine
-        self._chatmodel: ChatModel = ChatModel(streaming=True)
+        self._chatmodel: ChatModel = ChatModel()
         self._history: List[str] = []
         self._message_counter: int = 0
 

@@ -20,12 +20,11 @@ from env import env
 
 
 class ChatModel:
-    def __init__(self, streaming: bool = False):
+    def __init__(self):
         load_dotenv()
         api_key = os.getenv("OPENAI_API_KEY1")
         self._model_name = env.llm_model_name
         self._chat_history_size = env.chat_history_size
-        self._streaming = streaming
         self._load_chat_model(api_key=api_key, model_name=self._model_name)
         self._configure_chat()
 
@@ -35,7 +34,7 @@ class ChatModel:
         if message_type == "AI":
             self._memory.chat_memory.messages.append(AIMessage(content=message))
 
-    async def get_generator(self, question: str) -> AsyncIterable[str]:
+    async def get_generator(self, message_text: str) -> AsyncIterable[str]:
         self._truncate_memory()
         self._callback.done.clear()
 
@@ -48,7 +47,9 @@ class ChatModel:
                 event.set()
 
         task = asyncio.create_task(
-            wrap_done(self._chain.ainvoke({"question": question}), self._callback.done)
+            wrap_done(
+                self._chain.ainvoke({"message": message_text}), self._callback.done
+            )
         )
         async for token in self._callback.aiter():
             yield token
@@ -64,9 +65,9 @@ class ChatModel:
         self._llm = ChatOpenAI(
             openai_api_key=api_key,
             model_name=model_name,
-            streaming=self._streaming,
+            streaming=True,
             temperature=env.temperature,
-            callbacks=[self._callback, self._tokencounter] if self._streaming else None,
+            callbacks=[self._callback, self._tokencounter],
         )
         self._memory = ConversationBufferMemory(
             memory_key="chat_history", return_messages=True
@@ -79,7 +80,7 @@ class ChatModel:
                     "You are a helpful assistant that chats with the user. Always respond concise and polite."
                 ),
                 MessagesPlaceholder(variable_name="chat_history"),
-                HumanMessagePromptTemplate.from_template("{question}"),
+                HumanMessagePromptTemplate.from_template("{message}"),
             ]
         )
         self._chain = LLMChain(
