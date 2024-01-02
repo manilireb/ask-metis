@@ -9,3 +9,9 @@ class ChatMessage(BaseModel):
 class Thumbnail(BaseModel):
     id: int
     text: str
+
+
+class ChatHistoryMessage(BaseModel):
+    message_counter: int
+    message_text: str
+    message_type: str

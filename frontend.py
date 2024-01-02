@@ -66,8 +66,10 @@ with st.sidebar:
                     for msg in history:
                         st.session_state.messages.append(
                             {
-                                "role": "user" if msg[2] == "Human" else "assistant",
-                                "content": msg[1],
+                                "role": "user"
+                                if msg["message_type"] == "Human"
+                                else "assistant",
+                                "content": msg["message_text"],
                             }
                         )
                     st.session_state.id = id

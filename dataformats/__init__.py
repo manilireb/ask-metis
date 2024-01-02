@@ -1,1 +1,1 @@
-from .datatypes import ChatMessage, Thumbnail  # noqa: F401
+from .datatypes import ChatHistoryMessage, ChatMessage, Thumbnail  # noqa: F401

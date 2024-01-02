@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from langchain.callbacks.streaming_aiter import AsyncIteratorCallbackHandler
 from langchain.chains import LLMChain
 from langchain.chat_models import ChatOpenAI
-from langchain.memory import ConversationBufferMemory
+from langchain.memory import ConversationBufferWindowMemory
 from langchain.prompts import (
     ChatPromptTemplate,
     HumanMessagePromptTemplate,
@@ -16,15 +16,15 @@ from langchain.prompts import (
 from langchain.schema import AIMessage, HumanMessage
 
 from callbackhandlers import TokenMetricsCallbackHandler
-from env import env
 
 
 class ChatModel:
-    def __init__(self):
+    def __init__(self, llm_model_name: str, chat_hisotry_size: int, temperature: float):
         load_dotenv()
         api_key = os.getenv("OPENAI_API_KEY1")
-        self._model_name = env.llm_model_name
-        self._chat_history_size = env.chat_history_size
+        self._model_name = llm_model_name
+        self._chat_history_size = chat_hisotry_size
+        self._temperature = temperature
         self._load_chat_model(api_key=api_key, model_name=self._model_name)
         self._configure_chat()
 
@@ -35,7 +35,6 @@ class ChatModel:
             self._memory.chat_memory.messages.append(AIMessage(content=message))
 
     async def get_generator(self, message_text: str) -> AsyncIterable[str]:
-        self._truncate_memory()
         self._callback.done.clear()
 
         async def wrap_done(fn: Awaitable, event: asyncio.Event):
@@ -66,11 +65,11 @@ class ChatModel:
             openai_api_key=api_key,
             model_name=model_name,
             streaming=True,
-            temperature=env.temperature,
+            temperature=self._temperature,
             callbacks=[self._callback, self._tokencounter],
         )
-        self._memory = ConversationBufferMemory(
-            memory_key="chat_history", return_messages=True
+        self._memory = ConversationBufferWindowMemory(
+            memory_key="chat_history", return_messages=True, k=self._chat_history_size
         )
 
     def _configure_chat(self) -> None:
@@ -88,11 +87,3 @@ class ChatModel:
             prompt=prompt,
             memory=self._memory,
         )
-
-    def _truncate_memory(self) -> None:
-        if len(self._memory.chat_memory.messages) <= self._chat_history_size:
-            return
-        history = self._memory.load_memory_variables({})["chat_history"][
-            -self._chat_history_size :
-        ]
-        self._memory.chat_memory.messages = history

@@ -1,4 +1,4 @@
-from typing import AsyncIterable, List, Tuple
+from typing import AsyncIterable, List
 
 from sqlalchemy.engine.base import Engine
 from sqlmodel import Session as DBSession
@@ -6,15 +6,18 @@ from sqlmodel import select
 
 from chatmodels import ChatModel
 from database import SQLMessage
-from dataformats import ChatMessage
+from dataformats import ChatHistoryMessage, ChatMessage
+from env import env
 
 
 class Session:
     def __init__(self, id: int, engine: Engine):
         self._id: int = id
         self._engine: Engine = engine
-        self._chatmodel: ChatModel = ChatModel()
-        self._history: List[str] = []
+        self._chatmodel: ChatModel = ChatModel(
+            env.llm_model_name, env.chat_history_size, env.temperature
+        )
+        self._history: List[ChatHistoryMessage] = []
         self._message_counter: int = 0
 
     def get_chat_model_generator(self, message: ChatMessage) -> AsyncIterable[str]:
@@ -30,7 +33,11 @@ class Session:
             )
             for res in results:
                 self._history.append(
-                    (res.session_idx, res.session_message, res.message_type)
+                    ChatHistoryMessage(
+                        message_counter=res.session_idx,
+                        message_text=res.session_message,
+                        message_type=res.message_type,
+                    )
                 )
                 self._chatmodel.insert_into_memory(
                     message=res.session_message, message_type=res.message_type
@@ -48,11 +55,17 @@ class Session:
             db_session.add(message)
             db_session.commit()
 
-        self._history.append((self._message_counter, message_text, message_type))
+        self._history.append(
+            ChatHistoryMessage(
+                message_counter=self._message_counter,
+                message_text=message_text,
+                message_type=message_type,
+            )
+        )
         self._message_counter = len(self._history)
 
     def get_request_cost(self) -> float:
         return self._chatmodel.get_request_cost()
 
-    def get_history(self) -> List[Tuple[str, str, str]]:
+    def get_history(self) -> List[ChatHistoryMessage]:
         return self._history
