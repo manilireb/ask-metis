@@ -10,6 +10,7 @@ url_create_new_session = "http://localhost:8001/create_new_session"
 url_get_session_thumbnails = "http://localhost:8001/get_session_thumbnails"
 url_load_existing_session = "http://localhost:8001/load_existing_session"
 url_delete_session = "http://localhost:8001/delete_session"
+url_get_current_model_name = "http://localhost:8001/get_current_model_name"
 
 headers = {"Content-type": "application/json"}
 
@@ -102,14 +103,21 @@ if (
                 response += chunk.decode("utf-8")
                 placeholder.markdown(response)
         cost = requests.get(url=url_cost, params={"id": data["id"]}).json()["cost"]
-        cost_string = f"""
+        current_model = requests.get(
+            url=url_get_current_model_name, params={"id": data["id"]}
+        ).json()["model_name"]
+        info_string = f"""
+        <div style="color:blue; text-align: right;"> **{current_model}** </div>
         <div style="color:green; text-align: right;"> **{cost:.4f}$** </div>
         """
-        placeholder.markdown(response + cost_string, unsafe_allow_html=True)
-        response_data = {"content": response + cost_string, "id": data["id"]}
+        placeholder.markdown(response + info_string, unsafe_allow_html=True)
+        response_data = {
+            "content": response + info_string,
+            "id": data["id"],
+        }
         # write response back to data base
         requests.post(url=url_insert_db, json=response_data)
 
     # add response message to session state
-    message = {"role": "assistant", "content": response + cost_string}
+    message = {"role": "assistant", "content": response + info_string}
     st.session_state.messages.append(message)

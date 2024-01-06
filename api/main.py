@@ -57,3 +57,9 @@ def insert_message(message: ChatMessage):
 @app.post("/delete_session")
 def delete_session(id: int):
     session_handler.delete_session(id=id)
+
+
+@app.get("/get_current_model_name")
+def get_current_model_name(id: int):
+    session = session_handler.get_session(id)
+    return {"model_name": session.get_current_model_name()}

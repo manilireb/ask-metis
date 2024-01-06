@@ -8,15 +8,14 @@ from langchain.callbacks.openai_info import (
 )
 from tiktoken.core import Encoding
 
-from env import env
-
 
 class TokenMetricsCallbackHandler(BaseCallbackHandler):
-    model_name: str = env.llm_model_name
-    prompt_tokens: int = 0
-    completion_tokens: int = 0
-    total_cost: int = 0.0
-    enc: Encoding = tiktoken.encoding_for_model(model_name)
+    def __init__(self, model_name: str):
+        self.model_name = model_name
+        self.enc: Encoding = tiktoken.encoding_for_model(self.model_name)
+        self.prompt_tokens: int = 0
+        self.completion_tokens: int = 0
+        self.total_cost: int = 0.0
 
     def __repr__(self) -> str:
         return (

@@ -1,1 +1,1 @@
-from .session_handler_exception import SessionHandlerException  # noqa: F401
+from .exceptions import ChatModelException, SessionHandlerException  # noqa: F401

@@ -69,3 +69,6 @@ class Session:
 
     def get_history(self) -> List[ChatHistoryMessage]:
         return self._history
+
+    def get_current_model_name(self) -> str:
+        return self._chatmodel.get_current_model_name()
