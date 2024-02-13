@@ -42,4 +42,11 @@ After this step you should be able to
 chmod +x run_dev_local.sh
 ```
 
+## TODOS
+- Add Dockerimage
+- Add switch for model usage
+- Add support for generate images
+- Add support for upload pdfs
+- Display demo video on README
+
 
