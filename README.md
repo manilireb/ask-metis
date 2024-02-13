@@ -1,6 +1,11 @@
 # Ask Metis
 Ask Metis is a pay-as-you-go [OpenAI](https://openai.com/) powered chatbot with automatic model routing and per-request cost information. Optimal suited for university students.
 
+
+![Alt Text](media/askmetis1.gif)
+
+![Alt Text](media/askmetis2.gif)
+
 ### Pay-as-you-go
 OpenAI's [ChatGPT plus](https://chat.openai.com/) provides its service via subscription based payment. There are some obvious disadvantages to this approach:  
 1. Certainly, there are times (e.g. when studying for exams) where you need the chatbot service more often but also times where you utilize it only sparsly. Adapting the subscription all the time is cumbersome and additionally prevents it from using the services occasionally.
