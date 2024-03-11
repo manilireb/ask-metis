@@ -43,14 +43,24 @@ After this step you should be able to
 ```
 **Note:** Maybe you have to give the bash script the correct access. You can do this with 
 ```
-chmod +x run_dev_local.sh
+chmod +x run_local.sh
+```
+
+## Run with Docker (recommended)
+You still need to get your API keys and create a `.env` file as described in the previous section. Afterwards you just can run
+```
+docker build -t chat-metis . 
+docker run -p 8002:8002 -v .:/app chat-metis
+```
+To stop your docker image just type
+```
+docker ps
+docker stop <CONTAINER ID>
 ```
 
 ## TODOS
-- Add Dockerimage
 - Add switch for model usage
 - Add support for generate images
 - Add support for upload pdfs
-- Display demo video on README
 
 
